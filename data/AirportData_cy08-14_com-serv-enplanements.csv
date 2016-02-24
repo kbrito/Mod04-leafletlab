@@ -1,0 +1,11 @@
+Locid,City,CY14_Enplanements,CY13_Enplanements,CY12_Enplanements,CY11_Enplanements,CY10_Enplanements,CY09_Enplanements,CY08_Enplanements,latitude,longitude,Rank,FAA-Region,ST,AirportName
+ATL,Atlanta,"46,604,273","45,308,407","45,798,928","44,414,121","43,130,585","42,280,868","43,761,280",33.3573,-84.5718,1,SO,GA,Hartsfield - Jackson Atlanta International
+LAX,Los Angeles,"34,314,197","32,425,892","31,326,268","30,528,737","28,857,755","27,439,897","28,861,477",33.9425,-118.4081,2,WP,CA,Los Angeles International
+ORD,Chicago,"33,843,426","32,317,835","32,171,795","31,892,301","32,171,831","31,135,732","33,683,991",41.9786,-87.9048,3,GL,IL,Chicago O'Hare International
+DFW,Fort Worth,"30,804,567","29,038,128","28,022,904","27,518,358","27,100,656","26,663,984","27,219,285",32.8968,-97.038,4,SW,TX,Dallas/Fort Worth International
+JFK,New York,"26,244,928","25,036,358","24,520,981","23,664,832","22,934,047","22,710,272","23,620,948",40.6398,-73.7789,5,EA,NY,John F Kennedy International
+DEN,Denver,"26,000,591","25,496,885","25,799,841","25,667,499","25,241,932","24,013,669","24,117,623",39.8617,-104.6732,6,NM,CO,Denver International
+SFO,San Francisco  ,"22,770,783","21,704,626","21,284,236","20,056,568","19,359,003","18,467,908","17,280,328",37.619,-122.3749,7,WP,CA,San Francisco International
+CLT,Charlotte,"21,537,725","21,346,601","20,033,816","19,022,535","18,629,181","17,165,376","16,584,780",35.214,-80.9431,8,SO,NC,Charlotte/Douglas International
+LAS,Las Vegas,"20,620,248","19,946,179","19,959,651","19,872,617","18,996,738","19,445,952","22,537,950",36.0801,-115.1523,9,WP,NV,McCarran International
+PHX,Phoenix,"20,344,867","19,525,109","19,560,870","19,750,306","18,907,171","18,559,647","20,796,173",33.4343,-112.0116,10,WP,AZ,Phoenix Sky Harbor International
