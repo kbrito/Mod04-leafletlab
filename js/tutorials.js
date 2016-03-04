@@ -8,13 +8,14 @@
 
 // This piece sets the initial view of the map upon openning the map
 
-var map = L.map('map').setView([33.35, -84.5718
-], 4);
+var map = L.map('map').setView(
+    [33.35, -84.5718], 5);
 
 
 //add tile layer...replace project id and accessToken with your own
 L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpandmbXliNDBjZWd2M2x6bDk3c2ZtOTkifQ._QA7i5Mpkd_m30IGElHziw', {
-			maxZoom: 18,
+			minZoom: 4,
+            maxZoom: 18,
 			attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
 				'<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
 				'Imagery © <a href="http://mapbox.com">Mapbox</a>',
@@ -29,39 +30,77 @@ L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=p
     $.ajax("data/AirportDataEdit.geojson", {
         dataType: "json",
         success: function(response){
-            //create marker options
-            var geojsonMarkerOptions = {
-                radius: 8,
-                fillColor: "#0A2869",
-                color: "#000",
-                weight: 1,
-                opacity: 1,
-                fillOpacity: 0.8
-            };
-
-            var attribute = "CY14_Enplanements";
 
             //create a Leaflet GeoJSON layer and add it to the map
             L.geoJson(response, {
                 pointToLayer: function (feature, latlng){
 
+                //create marker options
+                    var options = {
+                        radius: 8,
+                        fillColor: "#0A2869",
+                        color: "#000",
+                        weight: 1,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    };
+
+                    var attribute = "CY14_Enplanements";
+
                     //Step 5: For each feature, determine its value for the selected attribute
                     var attValue = Number(feature.properties[attribute]);
 
-                    //examine the attribute value to check that it is correct
-                    console.log(feature.properties, attValue);
+                    // set the radius equal to the proportional radius related to the values
+                    options.radius = calcPropRadius(attValue);
 
-                    geojsonMarkerOptions.radius = calcPropRadius(attValue);
+                    //create circle marker layer
+                    var layer = L.circleMarker(latlng, options);
 
-                    return L.circleMarker(latlng, geojsonMarkerOptions);
+                    //build popup content string
+                    // var popupContent = "<p><b>City:</b> " + feature.properties.City + "</p><p><b>" 
+                    // + attribute + ":</b> " + feature.properties[attribute] + ' million' + "</p>";
+
+                    //original popupContent changed to panelContent...Example 2.2 line 1
+                    var panelContent = "<p><b>City:</b> " + feature.properties.City + "</p>";
+
+                    //add formatted attribute to panel content string
+                    var year = attribute.split("_")[0];
+                    attValue = attValue / 1000000;
+                    panelContent += "<p><b>Number of passengers in " + year + ":</b> " + attValue + " million</p>";
+
+                    //popup content is now just the city name
+                    var popupContent = feature.properties.City;
+
+                    //bind the popup to the circle marker
+                    layer.bindPopup(popupContent, {
+                        offset: new L.Point(0,-options.radius),
+                        closeButton: false
+                    });
+
+                    //event listeners to open popup on hover
+                    layer.on({
+                        mouseover: function(){
+                            this.openPopup();
+                        },
+                        mouseout: function(){
+                            this.closePopup();
+                        },
+                        click: function(){
+                            $("#panel").html(panelContent);
+                        }
+                    });
+
+                    return layer;
                 }
             }).addTo(map);
+
+
         }
     });
 
 function calcPropRadius(attValue) {
     //scale factor to adjust symbol size evenly
-    var scaleFactor = 0.00005;
+    var scaleFactor = 0.00002;
     //area based on attribute value and scale factor
     var area = attValue * scaleFactor;
     //radius calculated based on area
@@ -71,36 +110,6 @@ function calcPropRadius(attValue) {
 };
 
 
-//Step 3: Add circle markers for point features to the map
-function createPropSymbols(data, map){
-    //create marker options
-    var geojsonMarkerOptions = {
-        radius: 8,
-        fillColor: "#0A2869",
-        color: "#000",
-        weight: 1,
-        opacity: 1,
-        fillOpacity: 0.8
-    };
-
-    //Step 4: Determine which attribute to visualize with proportional symbols
-    var attribute = "CY14_Enplanements";
-
-    //create a Leaflet GeoJSON layer and add it to the map
-    L.geoJson(data, {
-        pointToLayer: function (feature, latlng) {
-
-            //Step 5: For each feature, determine its value for the selected attribute
-            var attValue = Number(feature.properties[attribute]);
-
-            //examine the attribute value to check that it is correct
-            console.log(feature.properties, attValue);
-            
-
-            return L.circleMarker(latlng, geojsonMarkerOptions);
-        }
-    }).addTo(map);
-};
 
 //Step 2: Import GeoJSON data
 function getData(map){
