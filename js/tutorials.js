@@ -6,52 +6,42 @@
 /* Example from Leaflet Quick Start Guide*/
 
 
-// This piece sets the initial view of the map upon openning the map
-
+// creating boundaries for the extent of the map
 var northWest = L.latLng(55.000, -130.000),
     southEast = L.latLng(15.000, -60.000),
     bounds = L.latLngBounds(northWest, southEast);
 
+// This piece creates the map element and sets the initial view
 var map = L.map('map').setView(
-    [33.35, -84.5718], 5).setMaxBounds(bounds);
+    [33.11, -106.61], 5).setMaxBounds(bounds);
 
+//uploading background tile layer 
 L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
     subdomains: 'abcd',
-    maxZoom: 19,
+    maxZoom: 16,
     minZoom: 3
 }).addTo(map);
 
-/*
-//add tile layer...replace project id and accessToken with your own
-L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpandmbXliNDBjZWd2M2x6bDk3c2ZtOTkifQ._QA7i5Mpkd_m30IGElHziw', {
-			minZoom: 4,
-            maxZoom: 18,
-			attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
-				'<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
-				'Imagery © <a href="http://mapbox.com">Mapbox</a>',
-			id: 'mapbox.streets'
-		}).addTo(map);
-*/
 
-/* Map of GeoJSON data from MegaCities.geojson */
-
-
-//Example 2.3 line 22...load the data
+//Ajax "Load Data" function
 $.ajax("data/AirportDataEdit02.geojson", {
     dataType: "json",
     success: function(response){
 
-    //create an attributes array
-    var attributes = processData(response);
+        //create an attributes array for data of interest
+        var attributes = processData(response);
 
-    createPropSymbols(response, map, attributes);
+        //load data onto map, projected with prop. symbols
+        createPropSymbols(response, map, attributes);
 
-    createSequenceControls(map, attributes); 
+        // promote #interactivity
+        createSequenceControls(map, attributes); 
 
-        }
+    }
 });
 
+//implement proper size for prop. symbols
 function calcPropRadius(attValue) {
     //scale factor to adjust symbol size evenly
     var scaleFactor = 0.00005;
@@ -63,6 +53,7 @@ function calcPropRadius(attValue) {
     return radius;
 };
 
+//project the desired information on the map
 function createPropSymbols (data, map, attributes) {
 
     //create a Leaflet GeoJSON layer and add it to the map
@@ -76,11 +67,13 @@ function createPropSymbols (data, map, attributes) {
 
 };
 
+//This is the detailed level where geodata gets put onto layers for the map
 function pointToLayer (feature, latlng, attributes) {
 
+    //initial array position at first point
     var attribute = attributes[0];
 
-
+    // set design style of prop. symbols
     var options = {
             radius: 8,
             fillColor: "#0A2869",
@@ -89,10 +82,8 @@ function pointToLayer (feature, latlng, attributes) {
             opacity: 1,
             fillOpacity: 0.8
         };
-
-        // var attribute = "Pass_2014";
             
-    //Step 5: For each feature, determine its value for the selected attribute
+    //For each feature, determine its value for the selected attribute
     var attValue = Number(feature.properties[attribute]);
 
     // set the radius equal to the proportional radius related to the values
@@ -104,41 +95,39 @@ function pointToLayer (feature, latlng, attributes) {
     // initiate an instance of panel text
     var panelContent;
 
-            //build popup content string
-            // var popupContent = "<p><b>City:</b> " + feature.properties.City + "</p><p><b>" 
-            // + attribute + ":</b> " + feature.properties[attribute] + ' million' + "</p>";
-
-            //original popupContent changed to panelContent...Example 2.2 line 1
+    //original popupContent changed to panelContent...Example 2.2 line 1
     panelContent += "<p><b>City:</b> " + feature.properties.City + "</p>";
 
     //add formatted attribute to panel content string
     var year = attribute.split("_")[1];
-            attValue = attValue / 1000000;
-            panelContent += "<p><b>Number of passengers in " + year + ":</b> " + attValue + " million</p>";
+    attValue = attValue / 1000000;
+    panelContent += "<p><b>Number of passengers in " + year + ":</b> " + attValue + " million</p>";
 
-            //popup content is now just the city name
-            var popupContent = feature.properties.City;
+    //popup content is now just the city name
+    var popupContent = feature.properties.City;
 
-            //bind the popup to the circle marker
-            layer.bindPopup(popupContent, {
-                offset: new L.Point(0,-options.radius),
-                closeButton: false
-            });
+    //bind the popup to the circle marker
+    layer.bindPopup(popupContent, {
+        offset: new L.Point(0,-options.radius),
+        closeButton: false
+    });
 
-            //event listeners to open popup on hover
-            layer.on({
-                mouseover: function(){
-                    this.openPopup();
-                },
-                mouseout: function(){
-                    this.closePopup();
-                },
-                click: function(){
-                    $("#panel").html(panelContent);
-                }
-            });
+    //event listeners to open popup on hover
+    layer.on({
+        mouseover: function(){
+            this.openPopup();
+        },
+        mouseout: function(){
+            this.closePopup();
+        },
+        click: function(){
+            $("#panel").html(panelContent);
+        }
 
-            return layer;
+    });
+
+    return layer;
+
 };
 
 /*
@@ -154,15 +143,40 @@ function pointToLayer(feature, latlng, attributes){
 
 //Create a slider bar for temporal data functionality 
 function createSequenceControls(map, attributes){
-    //create range input element (slider)
-    $('#panel').append('<input class="range-slider" type="range">');
 
-    $('#panel').append('<button class="skip" id="reverse" title="Back">Back</button>' );
-    $('#panel').append('<button class="skip" id="forward" title="Next">Next</button>');
+    //entend function to access script for functionality controls
+    var SequenceControl = L.Control.extend({
+        options: {
+            position: 'bottomleft'
+        },
+
+    onAdd: function (map) {
+        //implementing container to hold the slider bar function
+        var container = L.DomUtil.create('div', 'sequence-control-container');
+
+        //place range slider tool into container
+        $(container).append('<input class="range-slider" type="range">');
+
+        // add functional buttons to step through 
+        $(container).append('<button class="skip" id="reverse" title="Back">Back</button>' );
+        $(container).append('<button class="skip" id="forward" title="Next">Next</button>');
+
+        //#constrict, for the user's own good
+        $(container).on('mousedown dblclick', function(e) {
+            L.DomEvent.stopPropagation(e);
+        });
+
+        return container;
+
+        }
+    });
+
+    map.addControl(new SequenceControl());
+
 
     //set slider attributes
     $('.range-slider').attr({
-        max: 6,
+        max: 7,
         min: 0,
         value: 0,
         step: 1
@@ -206,8 +220,6 @@ function createSequenceControls(map, attributes){
         updatePropSymbols(map, attributes[index]);
 
     });
-
-
 
 };
 
