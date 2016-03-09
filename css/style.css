@@ -2,24 +2,46 @@
 *** This stylesheet was made by "The Sly Kai"
 */
 
+body {
+	background-color: #000000;
+}
+
 #title { 
 	width: 100%;  
 	display: inline-block;
 	text-align: center;
+	color: #ffffff;
 }
 
-#map { 
-	width: 70%; 
-	height: 400px; 
-	display: inline-block;
+h1{
+	color:#fff;
+
 }
+
+
 
 #panel {
-    width: 25%;
-    height: 400px;
+    width: 20%;
+    height: 360px;
     padding: 20px;
     display: inline-block;
     vertical-align: top;
+    color: #ffffff;
+}
+
+#innerPanel {
+    font-size: 0.75em;
+    text-align: center;
+}
+
+#bottom {
+	color: #ffffff;
+}
+
+#map { 
+	width: 75%; 
+	height: 400px; 
+	display: inline-block;
 }
 
 .leaflet-popup-content p {
@@ -29,6 +51,7 @@
 .sequence-control-container {
 	width: 300px;
 	height: 25px;
+	background-color: rgba(255,255,255,0.7);
 	padding: 10px;
 	text-align: center;
 }
