@@ -8,8 +8,8 @@
 
 // This piece sets the initial view of the map upon openning the map
 
-var northWest = L.latLng(60.000, -130.000),
-    southEast = L.latLng(20.000, -60.000),
+var northWest = L.latLng(55.000, -130.000),
+    southEast = L.latLng(15.000, -60.000),
     bounds = L.latLngBounds(northWest, southEast);
 
 var map = L.map('map').setView(
@@ -38,7 +38,7 @@ L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=p
 
 
 //Example 2.3 line 22...load the data
-$.ajax("data/AirportDataEdit.geojson", {
+$.ajax("data/AirportDataEdit02.geojson", {
     dataType: "json",
     success: function(response){
 
@@ -90,29 +90,29 @@ function pointToLayer (feature, latlng, attributes) {
             fillOpacity: 0.8
         };
 
-        // var attribute = "CY14_Enplanements";
+        // var attribute = "Pass_2014";
             
-            //Step 5: For each feature, determine its value for the selected attribute
-            var attValue = Number(feature.properties[attribute]);
+    //Step 5: For each feature, determine its value for the selected attribute
+    var attValue = Number(feature.properties[attribute]);
 
-            // set the radius equal to the proportional radius related to the values
-            options.radius = calcPropRadius(attValue);        
+    // set the radius equal to the proportional radius related to the values
+    options.radius = calcPropRadius(attValue);        
 
-            //create circle marker layer
-            var layer = L.circleMarker(latlng, options);
+    //create circle marker layer
+    var layer = L.circleMarker(latlng, options);
 
-            // initiate an instance of panel text
-            var panelContent;
+    // initiate an instance of panel text
+    var panelContent;
 
             //build popup content string
             // var popupContent = "<p><b>City:</b> " + feature.properties.City + "</p><p><b>" 
             // + attribute + ":</b> " + feature.properties[attribute] + ' million' + "</p>";
 
             //original popupContent changed to panelContent...Example 2.2 line 1
-            panelContent += "<p><b>City:</b> " + feature.properties.City + "</p>";
+    panelContent += "<p><b>City:</b> " + feature.properties.City + "</p>";
 
-            //add formatted attribute to panel content string
-            var year = attribute.split("_")[0];
+    //add formatted attribute to panel content string
+    var year = attribute.split("_")[1];
             attValue = attValue / 1000000;
             panelContent += "<p><b>Number of passengers in " + year + ":</b> " + attValue + " million</p>";
 
@@ -249,14 +249,12 @@ function processData(data){
     //push each attribute name into attributes array
     for (var attribute in properties){
         //only take attributes with population values
-        if (attribute.indexOf("Enplanements") > -1){
+        if (attribute.indexOf("Pass") > -1){
             attributes.push(attribute);
         };
     };
 
-    //check result
-    console.log(attributes);
-
+    //send data to project on layer map
     return attributes;
 };
 
