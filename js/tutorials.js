@@ -11,7 +11,14 @@
 var map = L.map('map').setView(
     [33.35, -84.5718], 5);
 
+L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
+    subdomains: 'abcd',
+    maxZoom: 19,
+    minZoom: 4
+}).addTo(map);
 
+/*
 //add tile layer...replace project id and accessToken with your own
 L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpandmbXliNDBjZWd2M2x6bDk3c2ZtOTkifQ._QA7i5Mpkd_m30IGElHziw', {
 			minZoom: 4,
@@ -21,82 +28,25 @@ L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=p
 				'Imagery © <a href="http://mapbox.com">Mapbox</a>',
 			id: 'mapbox.streets'
 		}).addTo(map);
-
+*/
 
 /* Map of GeoJSON data from MegaCities.geojson */
 
 
-    //Example 2.3 line 22...load the data
-    $.ajax("data/AirportDataEdit.geojson", {
-        dataType: "json",
-        success: function(response){
+//Example 2.3 line 22...load the data
+$.ajax("data/AirportDataEdit.geojson", {
+    dataType: "json",
+    success: function(response){
 
-            //create a Leaflet GeoJSON layer and add it to the map
-            L.geoJson(response, {
-                pointToLayer: function (feature, latlng){
+    //create an attributes array
+    var attributes = processData(response);
 
-                //create marker options
-                    var options = {
-                        radius: 8,
-                        fillColor: "#0A2869",
-                        color: "#000",
-                        weight: 1,
-                        opacity: 1,
-                        fillOpacity: 0.8
-                    };
+    createPropSymbols(response, map, attributes);
 
-                    var attribute = "CY14_Enplanements";
+    createSequenceControls(map, attributes); 
 
-                    //Step 5: For each feature, determine its value for the selected attribute
-                    var attValue = Number(feature.properties[attribute]);
-
-                    // set the radius equal to the proportional radius related to the values
-                    options.radius = calcPropRadius(attValue);
-
-                    //create circle marker layer
-                    var layer = L.circleMarker(latlng, options);
-
-                    //build popup content string
-                    // var popupContent = "<p><b>City:</b> " + feature.properties.City + "</p><p><b>" 
-                    // + attribute + ":</b> " + feature.properties[attribute] + ' million' + "</p>";
-
-                    //original popupContent changed to panelContent...Example 2.2 line 1
-                    var panelContent = "<p><b>City:</b> " + feature.properties.City + "</p>";
-
-                    //add formatted attribute to panel content string
-                    var year = attribute.split("_")[0];
-                    attValue = attValue / 1000000;
-                    panelContent += "<p><b>Number of passengers in " + year + ":</b> " + attValue + " million</p>";
-
-                    //popup content is now just the city name
-                    var popupContent = feature.properties.City;
-
-                    //bind the popup to the circle marker
-                    layer.bindPopup(popupContent, {
-                        offset: new L.Point(0,-options.radius),
-                        closeButton: false
-                    });
-
-                    //event listeners to open popup on hover
-                    layer.on({
-                        mouseover: function(){
-                            this.openPopup();
-                        },
-                        mouseout: function(){
-                            this.closePopup();
-                        },
-                        click: function(){
-                            $("#panel").html(panelContent);
-                        }
-                    });
-
-                    return layer;
-                }
-            }).addTo(map);
-
-
-        }
-    });
+    }
+});
 
 function calcPropRadius(attValue) {
     //scale factor to adjust symbol size evenly
@@ -109,19 +59,100 @@ function calcPropRadius(attValue) {
     return radius;
 };
 
+function createPropSymbols (data, map) {
 
+    //create a Leaflet GeoJSON layer and add it to the map
+    L.geoJson(data, {
+    pointToLayer: function (feature, latlng){
 
-//Step 2: Import GeoJSON data
-function getData(map){
-    //load the data
-    $.ajax("data/MegaCities.geojson", {
-        dataType: "json",
-        success: function(response){
-            //call function to create proportional symbols
-            createPropSymbols(response, map);
-        }
+        //create marker options
+            var options = {
+                radius: 8,
+                fillColor: "#0A2869",
+                color: "#000",
+                weight: 1,
+                opacity: 1,
+                fillOpacity: 0.8
+            };
+
+            var attribute = "CY14_Enplanements";
+
+            //Step 5: For each feature, determine its value for the selected attribute
+            var attValue = Number(feature.properties[attribute]);
+
+            // set the radius equal to the proportional radius related to the values
+            options.radius = calcPropRadius(attValue);
+
+            //create circle marker layer
+            var layer = L.circleMarker(latlng, options);
+
+            //build popup content string
+            // var popupContent = "<p><b>City:</b> " + feature.properties.City + "</p><p><b>" 
+            // + attribute + ":</b> " + feature.properties[attribute] + ' million' + "</p>";
+
+            //original popupContent changed to panelContent...Example 2.2 line 1
+            var panelContent = "<p><b>City:</b> " + feature.properties.City + "</p>";
+
+            //add formatted attribute to panel content string
+            var year = attribute.split("_")[0];
+            attValue = attValue / 1000000;
+            panelContent += "<p><b>Number of passengers in " + year + ":</b> " + attValue + " million</p>";
+
+            //popup content is now just the city name
+            var popupContent = feature.properties.City;
+
+            //bind the popup to the circle marker
+            layer.bindPopup(popupContent, {
+                offset: new L.Point(0,-options.radius),
+                closeButton: false
+            });
+
+            //event listeners to open popup on hover
+            layer.on({
+                mouseover: function(){
+                    this.openPopup();
+                },
+                mouseout: function(){
+                    this.closePopup();
+                },
+                click: function(){
+                    $("#panel").html(panelContent);
+                }
+            });
+
+            return layer;
+
+                }
+
+            }).addTo(map);
+
+}
+
+//Create a slider bar for temporal data functionality 
+function createSequenceControls(map){
+    //create range input element (slider)
+    $('#panel').append('<input class="range-slider" type="range">');
+
+    //set slider attributes
+    $('.range-slider').attr({
+        max: 6,
+        min: 0,
+        value: 0,
+        step: 1
     });
+
+    $('#panel').append('<button class="skip" id="reverse">Reverse</button>');
+    $('#panel').append('<button class="skip" id="forward">Skip</button>');
+
+    /*
+    //replace inter. buttons with icons
+    $('#reverse').html('<img src="img/reverse.png">');
+    $('#forward').html('<img src="img/forward.png">');
+    */
+
+
 };
+
 
 
 // as it states, this code places a marker at the specified coordinates

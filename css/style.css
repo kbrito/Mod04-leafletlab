@@ -3,13 +3,14 @@
 */
 
 #map { 
-	width: 75%; 
+	width: 70%; 
 	height: 400px; 
 	display: inline-block;
 }
 
 #panel {
-    width: 16%;
+    width: 25%;
+    height: 400px;
     padding: 20px;
     display: inline-block;
     vertical-align: top;
@@ -19,6 +20,17 @@
     margin: 0.2em 0;
 }
 
+.range-slider {
+    width: 50%;
+}
+
+#forward {
+    float: right;
+}
+
+#reverse {
+    float: left;
+}
 
 
 
