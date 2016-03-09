@@ -26,8 +26,15 @@
     margin: 0.2em 0;
 }
 
+.sequence-control-container {
+	width: 300px;
+	height: 25px;
+	padding: 10px;
+	text-align: center;
+}
+
 .range-slider {
-    width: 50%;
+    width: 125px;
 }
 
 #forward {

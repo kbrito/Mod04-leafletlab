@@ -176,17 +176,16 @@ function createSequenceControls(map, attributes){
 
     //set slider attributes
     $('.range-slider').attr({
-        max: 7,
+        max: 6,
         min: 0,
         value: 0,
         step: 1
     });
 
-    /*
     //replace inter. buttons with icons
-    $('#reverse').html('<img src="img/reverse.png">');
-    $('#forward').html('<img src="img/forward.png">');
-    */
+    $('#reverse').html('<img src="img/airplane-icon_flipped.png">');
+    $('#forward').html('<img src="img/airplane-icon.png">');
+
 
     //Step 5: click listener for buttons
     $('.skip').click(function(){
