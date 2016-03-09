@@ -8,14 +8,18 @@
 
 // This piece sets the initial view of the map upon openning the map
 
+var northWest = L.latLng(60.000, -130.000),
+    southEast = L.latLng(20.000, -60.000),
+    bounds = L.latLngBounds(northWest, southEast);
+
 var map = L.map('map').setView(
-    [33.35, -84.5718], 5);
+    [33.35, -84.5718], 5).setMaxBounds(bounds);
 
 L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
     subdomains: 'abcd',
     maxZoom: 19,
-    minZoom: 4
+    minZoom: 3
 }).addTo(map);
 
 /*
@@ -45,12 +49,12 @@ $.ajax("data/AirportDataEdit.geojson", {
 
     createSequenceControls(map, attributes); 
 
-    }
+        }
 });
 
 function calcPropRadius(attValue) {
     //scale factor to adjust symbol size evenly
-    var scaleFactor = 0.00002;
+    var scaleFactor = 0.00005;
     //area based on attribute value and scale factor
     var area = attValue * scaleFactor;
     //radius calculated based on area
@@ -59,39 +63,53 @@ function calcPropRadius(attValue) {
     return radius;
 };
 
-function createPropSymbols (data, map) {
+function createPropSymbols (data, map, attributes) {
 
     //create a Leaflet GeoJSON layer and add it to the map
     L.geoJson(data, {
-    pointToLayer: function (feature, latlng){
+        pointToLayer: function (feature, latlng) {
 
-        //create marker options
-            var options = {
-                radius: 8,
-                fillColor: "#0A2869",
-                color: "#000",
-                weight: 1,
-                opacity: 1,
-                fillOpacity: 0.8
-            };
+            return pointToLayer(feature, latlng, attributes);
 
-            var attribute = "CY14_Enplanements";
+        }
+    }).addTo(map);
 
+};
+
+function pointToLayer (feature, latlng, attributes) {
+
+    var attribute = attributes[0];
+
+
+    var options = {
+            radius: 8,
+            fillColor: "#0A2869",
+            color: "#000",
+            weight: 1,
+            opacity: 1,
+            fillOpacity: 0.8
+        };
+
+        // var attribute = "CY14_Enplanements";
+            
             //Step 5: For each feature, determine its value for the selected attribute
             var attValue = Number(feature.properties[attribute]);
 
             // set the radius equal to the proportional radius related to the values
-            options.radius = calcPropRadius(attValue);
+            options.radius = calcPropRadius(attValue);        
 
             //create circle marker layer
             var layer = L.circleMarker(latlng, options);
+
+            // initiate an instance of panel text
+            var panelContent;
 
             //build popup content string
             // var popupContent = "<p><b>City:</b> " + feature.properties.City + "</p><p><b>" 
             // + attribute + ":</b> " + feature.properties[attribute] + ' million' + "</p>";
 
             //original popupContent changed to panelContent...Example 2.2 line 1
-            var panelContent = "<p><b>City:</b> " + feature.properties.City + "</p>";
+            panelContent += "<p><b>City:</b> " + feature.properties.City + "</p>";
 
             //add formatted attribute to panel content string
             var year = attribute.split("_")[0];
@@ -121,17 +139,26 @@ function createPropSymbols (data, map) {
             });
 
             return layer;
+};
 
-                }
+/*
+function pointToLayer(feature, latlng, attributes){
 
-            }).addTo(map);
+    //Step 4: Assign the current attribute based on the first index of the attributes array
+    var attribute = attributes[0];
+    //check
+    console.log(attribute);
 
-}
+};
+*/
 
 //Create a slider bar for temporal data functionality 
-function createSequenceControls(map){
+function createSequenceControls(map, attributes){
     //create range input element (slider)
     $('#panel').append('<input class="range-slider" type="range">');
+
+    $('#panel').append('<button class="skip" id="reverse" title="Back">Back</button>' );
+    $('#panel').append('<button class="skip" id="forward" title="Next">Next</button>');
 
     //set slider attributes
     $('.range-slider').attr({
@@ -141,68 +168,96 @@ function createSequenceControls(map){
         step: 1
     });
 
-    $('#panel').append('<button class="skip" id="reverse">Reverse</button>');
-    $('#panel').append('<button class="skip" id="forward">Skip</button>');
-
     /*
     //replace inter. buttons with icons
     $('#reverse').html('<img src="img/reverse.png">');
     $('#forward').html('<img src="img/forward.png">');
     */
 
+    //Step 5: click listener for buttons
+    $('.skip').click(function(){
+        //get the old index value
+        var index = $('.range-slider').val();
+
+        //Step 6: increment or decrement depending on button clicked
+        if ($(this).attr('id') == 'forward'){
+            index++;
+            //Step 7: if past the last attribute, wrap around to first attribute
+            index = index > 6 ? 0 : index;
+            $('.range-slider').val(index);
+        } else if ($(this).attr('id') == 'reverse'){
+            index--;
+            //Step 7: if past the first attribute, wrap around to last attribute
+            index = index < 0 ? 6 : index;
+            $('.range-slider').val(index);
+        }
+        
+        //Step 9: pass new attribute to update symbols
+        updatePropSymbols(map, attributes[index]);
+        $('.range-slider').val(index);
+    });
+
+    //Step 5: input listener for slider
+    $('.range-slider').on('input', function(){
+        //Step 6: get the new index value
+        var index = $(this).val();
+
+        //Step 9: pass new attribute to update symbols
+        updatePropSymbols(map, attributes[index]);
+
+    });
+
+
 
 };
 
+//Step 10: Resize proportional symbols according to new attribute values
+function updatePropSymbols(map, attribute){
+    map.eachLayer(function(layer){
+        if (layer.feature && layer.feature.properties[attribute]){
+            //access feature properties
+            var props = layer.feature.properties;
+
+            //update each feature's radius based on new attribute values
+            var radius = calcPropRadius(props[attribute]);
+            layer.setRadius(radius);
+
+            //add city to popup content string
+            var popupContent = "<p><b>City:</b> " + props.City + "</p>";
+
+            //add formatted attribute to panel content string
+            var year = attribute.split("_")[1];
+            popupContent += "<p><b>Population in " + year + ":</b> " + props[attribute] + " million</p>";
+
+            //replace the layer popup
+            layer.bindPopup(popupContent, {
+                offset: new L.Point(0,-radius)
+            });
+        };
+    });
+};
 
 
-// as it states, this code places a marker at the specified coordinates
+//Above Example 3.8...Step 3: build an attributes array from the data
+function processData(data){
+    //empty array to hold attributes
+    var attributes = [];
 
-/*
-var marker = L.marker([51.5, -0.09]).addTo(map);
+    //properties of the first feature in the dataset
+    var properties = data.features[0].properties;
 
+    //push each attribute name into attributes array
+    for (var attribute in properties){
+        //only take attributes with population values
+        if (attribute.indexOf("Enplanements") > -1){
+            attributes.push(attribute);
+        };
+    };
 
-// as it states, this code places a circle polygon at the specified coordinates 
+    //check result
+    console.log(attributes);
 
-var circle = L.circle([51.508, -0.11], 500, {
-    color: 'red',
-    fillColor: '#f03',
-    fillOpacity: 0.5
-}).addTo(map);
+    return attributes;
+};
 
-
-// as it states, this code places a general polygon at the specified coordinates
-
-var polygon = L.polygon([
-    [51.509, -0.08],
-    [51.503, -0.06],
-    [51.51, -0.047]
-]).addTo(map);
-
-
-
-// as it states, this code places a general popup bubble upon interactive click
-
-marker.bindPopup("<b>Hello world!</b><br>I am a popup.").openPopup();
-circle.bindPopup("I am a circle.");
-polygon.bindPopup("I am a polygon.");
-
-// as it states, this code places a general popup bubble at a specified location
-var popup = L.popup()
-    .setLatLng([51.5, -0.09])
-    .setContent("I am a standalone popup.")
-    .openOn(map);
-
-
-
-// this code enables the click features on the map
-function onMapClick(e) {
-    popup
-        .setLatLng(e.latlng)
-        .setContent("You clicked the map at " + e.latlng.toString())
-        .openOn(map);
-}
-
-
-map.on('click', onMapClick);
-*/
 
